@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Simplified Admixture Calculator - Rapid estimation of G25 admixture proportions using Euclidean distances.">
+  <title>G25 Admixture Analysis</title>
+
+  <!-- Premium Retro Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Load scripts in order: Data source, then solver logic, then application glue -->
+  <script src="sources_modern.js"></script>
+  <script src="solver.js"></script>
+  <script src="app.js"></script>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="header">
+      <h1>G25 ADMIXTURE ANALYZER</h1>
+      <p>Calculate your ancestry proportions using standard global populations, optimized for South Asians.</p>
+    </header>
+
+    <!-- Main Input Panel -->
+    <main class="glass-panel input-section">
+      <label for="targetInput">Target Coordinates</label>
+      <p class="help-text">Input standard G25 comma-separated values (e.g.
+        <code>Example,0.0709,0.0255,...</code>)
+      </p>
+
+      <textarea id="targetInput" spellcheck="false"
+        placeholder="Example,0.0709,0.0255,-0.1045,0.0688,-0.0698,0.0393,0.0066,0.0028,-0.0062,-0.0033,-0.0023,0.0015,-0.0025,-0.0096,0.0072,0.0173,0.0007,0.0042,0.0066,-0.0109,0.0011,-0.0094,-0.0013,-0.0028,0.0069"></textarea>
+
+      <div id="errorMsg" class="error-msg"></div>
+
+      <button id="runBtn" class="run-btn">Run Admixture</button>
+    </main>
+
+    <!-- Results Panel. Starts empty, populated by app.js -->
+    <section class="glass-panel" style="padding: 10px 0;">
+      <div id="resultsContainer" class="results-container">
+        <!-- Placeholder text before running -->
+        <div style="text-align: center; color: #8c8173; padding: 40px 0;">
+          Results will appear here
+        </div>
+      </div>
+
+      <!-- Disclaimer -->
+      <footer class="disclaimer">
+        The calculator uses ghost simulations and may not reflect a formal AdmixTools breakdown. For a qpAdm report,
+        visit <a href="https://mytruedna.com" target="_blank" rel="noopener noreferrer">our advanced portal</a>.
+      </footer>
+    </section>
+
+  </div>
+
+</body>
+
+</html>

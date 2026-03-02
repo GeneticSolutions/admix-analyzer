@@ -1,0 +1,258 @@
+/* Retro Table UI Styles */
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital@1&display=swap');
+
+:root {
+    /* Very dark brownish-black baseline from the image */
+    --bg-color: #1a1815;
+    --panel-bg: rgba(20, 18, 15, 0.95);
+    --panel-border: #332d26;
+
+    /* Text color */
+    --text-primary: #d4c5b3;
+    --text-muted: #8c8173;
+    --accent: #dabe6a;
+    /* Golden for accenting */
+    --accent-hover: #e8cca1;
+    --danger: #cf6659;
+
+    /* Font setup */
+    --font-sans: 'Jost', sans-serif;
+    --font-serif: 'Playfair Display', serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 2.2rem;
+    font-weight: 500;
+    margin: 0;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+/* Panels */
+.glass-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Input Section */
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-section label {
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.input-section p.help-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    background: #110f0e;
+    border: 1px solid var(--panel-border);
+    padding: 15px;
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+textarea:focus {
+    border-color: var(--accent);
+}
+
+button.run-btn {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    margin-top: 10px;
+    width: max-content;
+}
+
+button.run-btn:hover {
+    background: var(--accent);
+    color: var(--bg-color);
+}
+
+button.run-btn:active {
+    transform: translateY(1px);
+}
+
+button.run-btn:disabled {
+    border-color: #554d42;
+    color: #554d42;
+    cursor: not-allowed;
+    background: transparent;
+}
+
+.error-msg {
+    background: rgba(207, 102, 89, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(207, 102, 89, 0.3);
+    padding: 12px 16px;
+    font-weight: 400;
+    display: none;
+    margin-top: 15px;
+}
+
+/* Results Section - Retro Table */
+.results-container {
+    opacity: 0;
+    transition: opacity 0.4s ease-in;
+    overflow-x: auto;
+}
+
+.results-container.fade-in {
+    opacity: 1;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    table-layout: fixed;
+}
+
+.results-table th,
+.results-table td {
+    padding: 15px 20px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Target column left alignment */
+.col-target {
+    text-align: left !important;
+    width: 250px;
+}
+
+/* Headers matching the picture */
+.results-table th {
+    border-bottom: 1px solid #3d362e;
+    font-weight: 500;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.results-table th.col-target {
+    color: #a49683;
+}
+
+.arrow {
+    font-size: 0.6rem;
+    opacity: 0.7;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+/* Row Values */
+.results-table td {
+    font-size: 1.15rem;
+    font-weight: 400;
+}
+
+/* Target Name Italic Serif Style */
+.results-table td.col-target em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: #e5dac9;
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+}
+
+.distance-badge-simple {
+    text-align: right;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 15px;
+    padding-right: 20px;
+}
+
+/* Disclaimer Footer */
+.disclaimer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 20px;
+    padding: 20px;
+    border-top: 1px solid var(--panel-border);
+}
+
+.disclaimer a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.disclaimer a:hover {
+    text-decoration: underline;
+}
+
+/* Layout responsiveness */
+@media (max-width: 800px) {
+    .app-container {
+        padding: 15px;
+    }
+
+    .glass-panel {
+        padding: 20px;
+    }
+}
