@@ -25,12 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rawTargetData = targetInput.value;
         const targetArray = parseTargetData(rawTargetData);
-        if (!targetArray) return;
+        if (!targetArray || targetArray.length === 0) return;
 
         const expectedDimensions = currentSources[0].length;
-        if (targetArray[0].length !== expectedDimensions) {
-            showError(`Column mismatch. Expected ${expectedDimensions - 1} coordinates, found ${targetArray[0].length - 1}. Please provide full G25 coordinates.`);
-            return;
+        // Basic validation: ensure at least the first target is the right length
+        for (let i = 0; i < targetArray.length; i++) {
+            if (targetArray[i].length !== expectedDimensions) {
+                showError(`Column mismatch on line ${i + 1}. Expected ${expectedDimensions - 1} coordinates, found ${targetArray[i].length - 1}. Please provide full G25 coordinates.`);
+                return;
+            }
         }
 
         try {
@@ -38,8 +41,44 @@ document.addEventListener('DOMContentLoaded', () => {
             runBtn.disabled = true;
 
             setTimeout(() => {
-                const results = runAdmixtureCore(targetArray, currentSources, 0, 0);
-                renderResults(targetArray[0][0], results);
+
+                // Track all populations found across all results to build table headers statically
+                let allPopsSet = new Set();
+                let allResults = [];
+
+                // Run the solver for each target line
+                for (let i = 0; i < targetArray.length; i++) {
+                    const singleTargetArray = [targetArray[i]];
+                    const result = runAdmixtureCore(singleTargetArray, currentSources, 0, 0);
+
+                    allResults.push({
+                        targetName: targetArray[i][0],
+                        distance: result.distance,
+                        breakdown: result.breakdown
+                    });
+
+                    // Add significant populations to the master list for headers
+                    result.breakdown.forEach(item => {
+                        if (item[1] > 0.0001) {
+                            allPopsSet.add(item[0]);
+                        }
+                    });
+                }
+
+                // Convert the set to an array so we have fixed column headers
+                const allPopsArray = Array.from(allPopsSet);
+
+                // Simple sort order prioritizing major populations from the prompt
+                const orderScore = {
+                    'Farmer': 100,
+                    'Steppe': 90,
+                    'BMAC': 80,
+                    'AASI': 70,
+                    'East_Asian': 60
+                };
+                allPopsArray.sort((a, b) => (orderScore[b] || 0) - (orderScore[a] || 0));
+
+                renderMultiResults(allResults, allPopsArray);
 
                 runBtn.textContent = 'Run Admixture';
                 runBtn.disabled = false;
@@ -65,22 +104,38 @@ document.addEventListener('DOMContentLoaded', () => {
         let text4 = text3.replace(/\,+/g, "\,");
 
         const lines = text4.split("\n");
-        let line = lines[0].split(",");
+        let validLines = [];
 
-        if (line.length <= 1) {
-            showError("Data format error. Make sure you pasted comma-separated values (e.g., Name,0.01,0.02,...)");
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].split(",");
+
+            if (line.length <= 1) {
+                // skip empty or single-word lines
+                continue;
+            }
+
+            let hasError = false;
+            for (let j = 1; j < line.length; j++) {
+                if (isNaN(Number(line[j]))) {
+                    showError(`Non-numerical value detected in coordinates on line ${i + 1}.`);
+                    hasError = true;
+                    break;
+                }
+                line[j] = Number(line[j]);
+            }
+            if (!hasError) {
+                validLines.push(line);
+            } else {
+                return null;
+            }
+        }
+
+        if (validLines.length === 0) {
+            showError("No valid data found. Make sure you pasted comma-separated values.");
             return null;
         }
 
-        for (let j = 1; j < line.length; j++) {
-            if (isNaN(Number(line[j]))) {
-                showError("Non-numerical value detected in coordinates.");
-                return null;
-            }
-            line[j] = Number(line[j]);
-        }
-
-        return [line];
+        return validLines;
     }
 
     function showError(msg) {
@@ -93,17 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return name.toUpperCase();
     }
 
-    function renderResults(targetName, resultData) {
-        const distancePercent = (resultData.distance * 100).toFixed(4);
-
-        // Filter out zero contributions for cleaner table
-        const validBreakdown = resultData.breakdown.filter(item => item[1] > 0.0001);
-
-        // Sort order to match the picture (Steppe, East Asian, AASI, Farmer...)
-        // Although the picture has this specific order, we will keep the sorted order from the solver which is descending score
-        // However, if we want to ensure exact presentation, we can render the ones provided.
-        // Let's stick with the descending score so the major components are first.
-
+    function renderMultiResults(allResults, headers) {
         let html = `
             <div class="results-table-container">
                 <table class="results-table">
@@ -112,33 +157,52 @@ document.addEventListener('DOMContentLoaded', () => {
                             <th class="col-target">TARGET</th>
         `;
 
-        validBreakdown.forEach(item => {
-            const displayName = formatPopName(item[0]);
-            const color = POP_COLORS[item[0]] || '#c9d1d9';
+        headers.forEach(popName => {
+            const displayName = formatPopName(popName);
+            const color = POP_COLORS[popName] || '#c9d1d9';
             html += `<th class="col-pop" style="color: ${color}">${displayName} <span class="arrow">▼</span></th>`;
         });
+
+        html += `<th class="col-pop" style="color: #8c8173">DISTANCE</th>`;
 
         html += `
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="col-target"><em>${targetName}</em></td>
         `;
 
-        validBreakdown.forEach(item => {
-            const score = item[1];
-            const percentage = (score * 100).toFixed(2) + '%';
-            const color = POP_COLORS[item[0]] || '#c9d1d9';
-            html += `<td class="col-pop" style="color: ${color}">${percentage}</td>`;
+        allResults.forEach(res => {
+            html += `<tr><td class="col-target"><em>${res.targetName}</em></td>`;
+
+            // Map the breakdown array logic into a fast dictionary for this row
+            const scoreDict = {};
+            res.breakdown.forEach(item => {
+                scoreDict[item[0]] = item[1];
+            });
+
+            // Iterate over all globally known headers to create columns
+            headers.forEach(popName => {
+                const score = scoreDict[popName] || 0;
+                // Only write a percentage if it actually contributed something
+                if (score > 0.0001) {
+                    const percentage = (score * 100).toFixed(2) + '%';
+                    const color = POP_COLORS[popName] || '#c9d1d9';
+                    html += `<td class="col-pop" style="color: ${color}">${percentage}</td>`;
+                } else {
+                    html += `<td class="col-pop" style="color: #444">-</td>`;
+                }
+            });
+
+            const distancePercent = (res.distance * 100).toFixed(4) + '%';
+            html += `<td class="col-pop" style="color: #8c8173">${distancePercent}</td>`;
+
+            html += `</tr>`;
         });
 
         html += `
-                        </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="distance-badge-simple">Distance: ${distancePercent}%</div>
         `;
 
         resultsContainer.innerHTML = html;
