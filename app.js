@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSources = PREDEFINED_SOURCES;
 
     const POP_COLORS = {
-        'Steppe': '#6ba4c6',
-        'East_Asian': '#9b7eb5',
-        'AASI': '#7db695',
-        'Farmer': '#d1bb69',
+        'Steppe': '#bec66bff',
+        'East_Asian': '#91b57eff',
+        'AASI': '#7d82b6ff',
+        'Farmer': '#d1697eff',
         'BMAC': '#d07b5a'
     };
 
@@ -103,10 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let text3 = text2.replace(/\n+/g, "\n");
         let text4 = text3.replace(/\,+/g, "\,");
 
-        const lines = text4.split("\n");
+        // This splits by any number of line breaks so double/triple spaces are handled perfectly
+        const lines = text4.split(/\n+/);
         let validLines = [];
 
         for (let i = 0; i < lines.length; i++) {
+            if (!lines[i] || lines[i].trim() === '') continue;
+
             let line = lines[i].split(",");
 
             if (line.length <= 1) {
